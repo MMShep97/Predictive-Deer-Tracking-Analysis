@@ -1,13 +1,13 @@
 <template>
   <div>
     <router-link
-      v-if="$route.path !== '/time-entries/log-time'"
-      to="time-entries/log-time"
+      v-if="$route.path !== '/tracking/log-time'"
+      to="tracking/log-time"
       class="btn btn-primary">
       Log Time
     </router-link>
  
-    <div v-if="$route.path === '/time-entries/log-time'">
+    <div v-if="$route.path === '/tracking/log-time'">
       <h3>Log Time</h3>     
     </div>
 
@@ -20,7 +20,7 @@
 
       <div class="list-group">
 
-        <a class="list-group-item" v-for="timeEntry in timeEntriesResult">
+        <a v-bind:class="list-group-item" v-for="timeEntry in timeEntriesResult">
           <div class="row">
             <div class="col-sm-2 user-details">
               <img :src="timeEntry.user.image" class="avatar img-circle img-responsive" />

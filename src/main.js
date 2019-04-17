@@ -3,20 +3,26 @@
 import Vue 			from 'vue'
 import App 			from './App'
 import Home 		from './components/Home'
-import TimeEntries 	from './components/TimeEntries'
+import Tracking 	from './components/Tracking'
 import LogTime 		from './components/LogTime'
+import Gallery		from './components/Gallery'
+import Login		from './components/Login'
 
 import VueRouter 	from 'vue-router'
 import VueResource 	from 'vue-resource'
 
+import moment 		from 'moment'
+
 Vue.use(VueResource)
 Vue.use(VueRouter)
+
+Vue.prototype.moment = moment;
 
 const router = new VueRouter({
 	routes: [
 		{ path: '/', component: Home},
 		{ path: '/home', component: Home},
-		{ path: '/time-entries', component: TimeEntries,
+		{ path: '/tracking', component: Tracking,
 			children: [
 				{
 					path: 'log-time',
@@ -24,6 +30,8 @@ const router = new VueRouter({
 				}
 			]
 		},
+		{ path: '/gallery', component: Gallery},
+		{ path: '/login', component: Login},
 		{ path: '*', redirect: '/home'}
 	],
 	mode: 'history' 
