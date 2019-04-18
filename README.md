@@ -1,10 +1,6 @@
-# vue-time-tracker
+# Predictive Deer Tracking Analysis
 
-> A Vue.js project
-
-> Updated library versions for Scotch's Full Stack Vue.js tutorial from Vue, Router, and Vuex 1.0 to 2.0.
-
-> https://scotch.io/tutorials/build-a-single-page-time-tracking-app-with-vue-js-part-ii
+Internet of Things - Spring 2019 - Month-long Project
 
 ## Build Setup
 
@@ -18,5 +14,3 @@ npm run dev
 # build for production with minification
 npm run build
 ```
-
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
