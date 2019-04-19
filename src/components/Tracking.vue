@@ -64,15 +64,12 @@ import * as database     from '../database'
                             "Minute: " + minute);
             }
 
-            //Actually upload to firebase
+            //Actually upload to firebase (imported from database.js)
             database.uploadToDatabase(year, month, day, hour, minute);
         }
     },
 
-
-    uploadToDatabase() {
-
-    }
+    
   }
 };
 

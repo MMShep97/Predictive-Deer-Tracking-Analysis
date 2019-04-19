@@ -11,12 +11,8 @@ import Login		from './components/Login'
 import VueRouter 	from 'vue-router'
 import VueResource 	from 'vue-resource'
 
-import moment 		from 'moment'
-
 Vue.use(VueResource)
 Vue.use(VueRouter)
-
-Vue.prototype.moment = moment;
 
 const router = new VueRouter({
 	routes: [
