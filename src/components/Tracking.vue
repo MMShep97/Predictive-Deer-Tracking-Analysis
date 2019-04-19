@@ -15,7 +15,7 @@
                             <input type="file" multiple class="files">
                         </label>
                     </div>
-                    <div><button class="btn-info submit-button" v-on:click="uploadToDatabase">Submit</button></div>
+                    <div><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
                 </div>
                 <div class="panel-footer text-center">
                     <div class="footer-spacer">Your personalized best estimated Time</div>
@@ -29,32 +29,49 @@
 
 
 <script>
-
 //Allow sidebar component to be used
-import Sidebar from './Sidebar'
+import Sidebar           from './Sidebar'
+import moment            from 'moment'
+import * as database     from '../database'  
 
 	export default {
 
     components: {'sidebar': Sidebar},
 
     methods: {
-     uploadToDatabase(e) {
+     processFiles(e) {
         let allFiles = document.querySelector('.files').files;
         let fileDate;
+        let year, month, day, hour, minute;
         let fileTime;
         let militaryTime;
-        console.log(allFiles);
+        
         //Then access each file's date by doing allFiles[i].lastModifiedDate
         if (allFiles !== null) {
             for (let i = 0; i < allFiles.length; i++) {
-                console.log(allFiles.item(i).name);
                 fileDate = allFiles.item(i).lastModifiedDate;
-                fileTime = fileDate.toLocaleTimeString();
-                militaryTime = moment(fileTime).format("H:MM");
+                year = fileDate.getFullYear();
+                month = fileDate.getMonth() + 1; //0 indexed
+                day = fileDate.getDate();
+                hour = fileDate.getHours();
+                minute = fileDate.getMinutes();
+                // militaryTime = moment(fileDate).format("HH:MM"); //Formats to military time string
                 console.log("Date: " + fileDate);
-                console.log("Time " + militaryTime);
+                console.log("Year: " + year + " | " + 
+                            "Month: " + month + " | " + 
+                            "Day: " + day + " | " + 
+                            "Hour: " + hour + " | " + 
+                            "Minute: " + minute);
             }
+
+            //Actually upload to firebase
+            database.uploadToDatabase(year, month, day, hour, minute);
         }
+    },
+
+
+    uploadToDatabase() {
+
     }
   }
 };
