@@ -9,6 +9,14 @@
             <div class="panel panel-primary">
                 <div class="panel-heading text-center header">Prediction Tool</div>
                 <div class="panel-body text-center">
+                    <div> 
+                        <label class="text-center">Latitude</label>
+                        <input v-model="lat" placeholder="e.g. 47 deg N => 47">
+                    </div>
+                    <div class="text-center">
+                        <label>Longitude</label>
+                        <input v-model="long" placeholder="e.g. 47 deg W => -47">
+                    </div>
                     <div>
                         <label class="text-reader">
                             Select Files
@@ -18,8 +26,8 @@
                     <div><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
                 </div>
                 <div class="panel-footer text-center">
-                    <div class="footer-spacer">Your personalized best estimated Time{{message}}</div>
-                    <div class="jumbotron calculated-time" v-on:click="latLong2Fips(43.2694, -91.4757)">8:30</div>
+                    <div class="footer-spacer">Your personalized best estimated Time</div>
+                    <div class="jumbotron calculated-time">8:30</div>
                 </div>
                 
             </div>
@@ -40,7 +48,8 @@ import * as database     from '../database'
 
     data: function() {
         return {
-            message: "",
+            lat: "",
+            long: "",
         }
     },
 
@@ -49,9 +58,11 @@ import * as database     from '../database'
         processFiles(e) {
             let allFiles = document.querySelector('.files').files;
             let fileDate;
+            let startDate, endDate; //used for NOAA API in function below
             let year, month, day, hour, minute;
             let fileTime;
             let militaryTime;
+            let FIPS, temperature;
         
             //Then access each file's date by doing allFiles[i].lastModifiedDate
             if (allFiles !== null) {
@@ -62,7 +73,11 @@ import * as database     from '../database'
                     day = fileDate.getDate();
                     hour = fileDate.getHours();
                     minute = fileDate.getMinutes();
-                    // militaryTime = moment(fileDate).format("HH:MM"); //Formats to military time string
+
+                    //only need temp for one day
+                    startDate = `${year}-${month}-${day}`;
+                    endDate = startDate;
+
                     console.log("Date: " + fileDate);
                     console.log("Year: " + year + " | " + 
                                 "Month: " + month + " | " + 
@@ -71,7 +86,9 @@ import * as database     from '../database'
                                 "Minute: " + minute);
 
                     //Actually upload to firebase (imported from database.js)
-                    database.uploadToDatabase(year, month, day, hour, minute);
+                    FIPS = database.latLong2Fips(data.lat, data.long);
+                    temperature = database.getTemperature(FIPS, startDate, endDate);
+                    database.uploadToDatabase(year, month, day, hour, minute, temperature);
                 }
             }
         },
@@ -79,7 +96,6 @@ import * as database     from '../database'
 
   }
 };
-
 </script>
 
 <style type="text/css">

@@ -16,12 +16,13 @@ var config = {
 var updates = {};
 var database = firebase.database();
 
-export function uploadToDatabase(year, month, day, hour, minute) {
+export function uploadToDatabase(year, month, day, hour, minute, temperature) {
     updates['/year'] = year;
     updates['/month'] = month;
     updates['/day'] = day;
     updates['/hour'] = hour;
     updates['/minute'] = minute;
+    updates['/temperature'] = temperature
 
     return database.ref().update(updates);
 }
@@ -53,6 +54,24 @@ export function latLong2Fips(lat, long) {
 }
 
 //Grabs temperature data 
-export function getTemperature() {
-    
+export function getTemperature(FIPS, startDate, endDate) {
+    var request = new XMLHttpRequest()
+
+    request.open('GET', `www.ncdc.noaa.gov/cdo-web/api/v2/locations/FIPS:${FIPS}`, true)
+    request.onload = function() {
+
+        // Begin accessing JSON data here
+        var data = JSON.parse(this.response)
+        console.log(data);
+        
+
+        if (request.status >= 200 && request.status < 400) {
+            //return county fips
+            console.log("nice");
+        } else {
+            console.log('error')
+        }
+    }
+
+    request.send()
 }
