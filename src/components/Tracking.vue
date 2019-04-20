@@ -18,8 +18,8 @@
                     <div><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
                 </div>
                 <div class="panel-footer text-center">
-                    <div class="footer-spacer">Your personalized best estimated Time</div>
-                    <div class="jumbotron calculated-time ">8:30</div>
+                    <div class="footer-spacer">Your personalized best estimated Time{{message}}</div>
+                    <div class="jumbotron calculated-time" v-on:click="latLong2Fips(43.2694, -91.4757)">8:30</div>
                 </div>
                 
             </div>
@@ -38,38 +38,45 @@ import * as database     from '../database'
 
     components: {'sidebar': Sidebar},
 
-    methods: {
-     processFiles(e) {
-        let allFiles = document.querySelector('.files').files;
-        let fileDate;
-        let year, month, day, hour, minute;
-        let fileTime;
-        let militaryTime;
-        
-        //Then access each file's date by doing allFiles[i].lastModifiedDate
-        if (allFiles !== null) {
-            for (let i = 0; i < allFiles.length; i++) {
-                fileDate = allFiles.item(i).lastModifiedDate;
-                year = fileDate.getFullYear();
-                month = fileDate.getMonth() + 1; //0 indexed
-                day = fileDate.getDate();
-                hour = fileDate.getHours();
-                minute = fileDate.getMinutes();
-                // militaryTime = moment(fileDate).format("HH:MM"); //Formats to military time string
-                console.log("Date: " + fileDate);
-                console.log("Year: " + year + " | " + 
-                            "Month: " + month + " | " + 
-                            "Day: " + day + " | " + 
-                            "Hour: " + hour + " | " + 
-                            "Minute: " + minute);
-            }
-
-            //Actually upload to firebase (imported from database.js)
-            database.uploadToDatabase(year, month, day, hour, minute);
+    data: function() {
+        return {
+            message: "",
         }
     },
 
+    methods: {
     
+        processFiles(e) {
+            let allFiles = document.querySelector('.files').files;
+            let fileDate;
+            let year, month, day, hour, minute;
+            let fileTime;
+            let militaryTime;
+        
+            //Then access each file's date by doing allFiles[i].lastModifiedDate
+            if (allFiles !== null) {
+                for (let i = 0; i < allFiles.length; i++) {
+                    fileDate = allFiles.item(i).lastModifiedDate;
+                    year = fileDate.getFullYear();
+                    month = fileDate.getMonth() + 1; //0 indexed
+                    day = fileDate.getDate();
+                    hour = fileDate.getHours();
+                    minute = fileDate.getMinutes();
+                    // militaryTime = moment(fileDate).format("HH:MM"); //Formats to military time string
+                    console.log("Date: " + fileDate);
+                    console.log("Year: " + year + " | " + 
+                                "Month: " + month + " | " + 
+                                "Day: " + day + " | " + 
+                                "Hour: " + hour + " | " + 
+                                "Minute: " + minute);
+
+                    //Actually upload to firebase (imported from database.js)
+                    database.uploadToDatabase(year, month, day, hour, minute);
+                }
+            }
+        },
+
+
   }
 };
 
