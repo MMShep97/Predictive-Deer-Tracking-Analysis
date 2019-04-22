@@ -1,5 +1,6 @@
-var firebase = require( 'firebase/app');
-require( 'firebase/database');
+var firebase = require( 'firebase');
+require('firebase/firestore');
+
 
 
 // Initialize Firebase
@@ -11,10 +12,12 @@ var config = {
     storageBucket: "predictive-deer-tracker.appspot.com",
     messagingSenderId: "473245916948"
   };
-  firebase.initializeApp(config);
+firebase.initializeApp(config);
 
-var updates = {};
+var firestore = firebase.firestore();
 var database = firebase.database();
+var updates = {};
+
 
 export function uploadToDatabase(year, month, day, hour, minute, lowTemp, highTemp) {
     updates['/year'] = year;
@@ -28,13 +31,8 @@ export function uploadToDatabase(year, month, day, hour, minute, lowTemp, highTe
     return database.ref().update(updates);
 }
 
-export function sendFileDataToDatabase(temp, callback) {
-    
-    callback.apply(args, temp[0], temp[1]); //GHCND = dataset for daily summaries
-}
-
 //Grabs temperature data 
-export function getTemperature(zip, startDate, endDate, dataset, callback, args) {
+export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callback, args) {
 
     var apiKey = 'suKlQEiyzoZuQufBYvwuTWksOpgvLyhI';
     var params = `datasetid=${dataset}&datatypeid=TMIN&datatypeid=TMAX&locationid=ZIP:${zip}&startdate=${startDate}&enddate=${endDate}&limit=5&units=standard`
@@ -65,8 +63,10 @@ export function getTemperature(zip, startDate, endDate, dataset, callback, args)
                     temperature[1] = data.results[i].value;
                 }
             }
+            //add low and high temps to args...
             args.push(temperature[0]);
             args.push(temperature[1]);
+            //apply args to callback (uploadToDatabase function)
             callback.apply(this, args);
         //error
         } else {

@@ -9,6 +9,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "firebase": "^5.9.3",
     "moment": "^2.24.0",
     "semantic-ui-vue": "^0.8.1",
     "vue": "^2.1.0",

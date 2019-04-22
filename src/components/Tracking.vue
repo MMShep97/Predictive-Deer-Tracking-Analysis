@@ -99,11 +99,9 @@ import * as database     from '../database'
                                 "Hour: " + this.hour + " | " + 
                                 "Minute: " + this.minute);
 
-                    //Get temperature from NOAA API and upload to firebase (imported from database.js)
-                    database.getTemperature(this.zip, startDate, endDate, 'GHCND', database.uploadToDatabase, 
-                                               [this.year, this.month, this.day, this.hour, this.minute] );
-                    // this.sendFileDataToDatabase(temperature, database.uploadToDatabase, 
-                                                    // [this.year, this.month, this.day, this.hour, this.minute, this.temperature[0], this.temperature[1]]);
+                    //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
+                    database.getTemperatureAndUpload(this.zip, startDate, endDate, 'GHCND', database.uploadToDatabase, 
+                                                         [ this.year, this.month, this.day, this.hour, this.minute ] );
                 }
             }
         },
