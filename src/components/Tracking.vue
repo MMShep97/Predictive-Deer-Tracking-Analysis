@@ -9,21 +9,18 @@
             <div class="panel panel-primary">
                 <div class="panel-heading text-center header">Prediction Tool</div>
                 <div class="panel-body text-center">
-                    <div> 
-                        <label class="text-center">Latitude</label>
-                        <input v-model="lat" placeholder="e.g. 47 deg N => 47">
+                    <div class="location-input small-spacer"> 
+                        <div><label class="text-center">Enter Location of Property</label></div>
+                        <input v-model="lat" type="number" placeholder="Latitude" class="text-center">{{lat}}
+                        <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}}
                     </div>
-                    <div class="text-center">
-                        <label>Longitude</label>
-                        <input v-model="long" placeholder="e.g. 47 deg W => -47">
-                    </div>
-                    <div>
+                    <div class="file-input">
                         <label class="text-reader">
                             Select Files
                             <input type="file" multiple class="files">
                         </label>
                     </div>
-                    <div><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
+                    <div class="button-container"><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
                 </div>
                 <div class="panel-footer text-center">
                     <div class="footer-spacer">Your personalized best estimated Time</div>
@@ -39,7 +36,9 @@
 <script>
 //Allow sidebar component to be used
 import Sidebar           from './Sidebar'
+//moment for date formatting
 import moment            from 'moment'
+//for uploading to firebase and helper functions
 import * as database     from '../database'  
 
 	export default {
@@ -55,6 +54,7 @@ import * as database     from '../database'
 
     methods: {
     
+        //overarching function, parses, uses database functions to find temperature, uploads data to database
         processFiles(e) {
             let allFiles = document.querySelector('.files').files;
             let fileDate;
@@ -74,10 +74,14 @@ import * as database     from '../database'
                     hour = fileDate.getHours();
                     minute = fileDate.getMinutes();
 
-                    //only need temp for one day
+                    //only need temp for one day, append 0 to month if < 10
+                    month < 10 ? month = `0${month}` : month;
+                    day < 10 ? day = `0${day}` : day;
                     startDate = `${year}-${month}-${day}`;
                     endDate = startDate;
+                    console.log("Start date: " + startDate);
 
+                    //Debugging
                     console.log("Date: " + fileDate);
                     console.log("Year: " + year + " | " + 
                                 "Month: " + month + " | " + 
@@ -86,9 +90,9 @@ import * as database     from '../database'
                                 "Minute: " + minute);
 
                     //Actually upload to firebase (imported from database.js)
-                    FIPS = database.latLong2Fips(data.lat, data.long);
-                    temperature = database.getTemperature(FIPS, startDate, endDate);
-                    database.uploadToDatabase(year, month, day, hour, minute, temperature);
+                    //FIPS = database.latLong2Fips(this.lat, this.long);
+                    temperature = database.getTemperature('23', startDate, endDate, 'GHCND'); //GHCND = dataset for daily summaries
+                    //database.uploadToDatabase(year, month, day, hour, minute, temperature);
                 }
             }
         },
@@ -125,6 +129,10 @@ import * as database     from '../database'
     opacity: 0;
     }
 
+    .small-spacer {
+        margin-bottom: 10px;
+    }
+
     .footer-spacer {
         margin: 10px 0 10px 0;
     }
@@ -133,6 +141,9 @@ import * as database     from '../database'
         font-size: 30px;
     }
     
+    .button-container {
+        margin-bottom: 15px;
+    }
     .submit-button {
         font-size: 20px;
     }
