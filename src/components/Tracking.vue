@@ -10,9 +10,9 @@
                 <div class="panel-heading text-center header">Prediction Tool</div>
                 <div class="panel-body text-center">
                     <div class="location-input small-spacer"> 
-                        <div><label class="text-center">Enter Location of Property</label></div>
-                        <input v-model="lat" type="number" placeholder="Latitude" class="text-center">{{lat}}
-                        <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}}
+                        <div><label class="text-center">Enter ZIP Code pictures were taken in</label></div>
+                        <input v-model="zip" type="number" placeholder="e.g. 11103" class="text-center">{{zip}}
+                        <!-- <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}} -->
                     </div>
                     <div class="file-input">
                         <label class="text-reader">
@@ -47,55 +47,68 @@ import * as database     from '../database'
 
     data: function() {
         return {
+            //location
+            zip: "",
             lat: "",
             long: "",
+            
+            //date - time
+            year: "",
+            month: "",
+            day: "",
+            hour: "",
+            minute: "",
+            fileDate: "",
+            fileTime: "",
+
+            //temperature 
+            temperature: ["", ""],
         }
     },
 
     methods: {
-    
-        //overarching function, parses, uses database functions to find temperature, uploads data to database
+
+        //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
         processFiles(e) {
             let allFiles = document.querySelector('.files').files;
-            let fileDate;
             let startDate, endDate; //used for NOAA API in function below
-            let year, month, day, hour, minute;
-            let fileTime;
-            let militaryTime;
             let FIPS, temperature;
         
             //Then access each file's date by doing allFiles[i].lastModifiedDate
             if (allFiles !== null) {
                 for (let i = 0; i < allFiles.length; i++) {
-                    fileDate = allFiles.item(i).lastModifiedDate;
-                    year = fileDate.getFullYear();
-                    month = fileDate.getMonth() + 1; //0 indexed
-                    day = fileDate.getDate();
-                    hour = fileDate.getHours();
-                    minute = fileDate.getMinutes();
+                    this.fileDate = allFiles.item(i).lastModifiedDate;
+                    this.year = this.fileDate.getFullYear();
+                    this.month = this.fileDate.getMonth() + 1; //0 indexed
+                    this.day = this.fileDate.getDate();
+                    this.hour = this.fileDate.getHours();
+                    this.minute = this.fileDate.getMinutes();
 
                     //only need temp for one day, append 0 to month if < 10
-                    month < 10 ? month = `0${month}` : month;
-                    day < 10 ? day = `0${day}` : day;
-                    startDate = `${year}-${month}-${day}`;
+                    this.month < 10 ? this.month = `0${this.month}` : this.month;
+                    this.day < 10 ? this.day = `0${this.day}` : this.day;
+                    startDate = `${this.year}-${this.month}-${this.day}`;
                     endDate = startDate;
                     console.log("Start date: " + startDate);
 
                     //Debugging
-                    console.log("Date: " + fileDate);
-                    console.log("Year: " + year + " | " + 
-                                "Month: " + month + " | " + 
-                                "Day: " + day + " | " + 
-                                "Hour: " + hour + " | " + 
-                                "Minute: " + minute);
+                    console.log("Date: " + this.fileDate);
+                    console.log("Year: " + this.year + " | " + 
+                                "Month: " + this.month + " | " + 
+                                "Day: " + this.day + " | " + 
+                                "Hour: " + this.hour + " | " + 
+                                "Minute: " + this.minute);
 
-                    //Actually upload to firebase (imported from database.js)
-                    //FIPS = database.latLong2Fips(this.lat, this.long);
-                    temperature = database.getTemperature('23', startDate, endDate, 'GHCND'); //GHCND = dataset for daily summaries
-                    //database.uploadToDatabase(year, month, day, hour, minute, temperature);
+                    //Get temperature from NOAA API and upload to firebase (imported from database.js)
+                    database.getTemperature(this.zip, startDate, endDate, 'GHCND', database.uploadToDatabase, 
+                                               [this.year, this.month, this.day, this.hour, this.minute] );
+                    // this.sendFileDataToDatabase(temperature, database.uploadToDatabase, 
+                                                    // [this.year, this.month, this.day, this.hour, this.minute, this.temperature[0], this.temperature[1]]);
                 }
             }
         },
+
+        
 
 
   }
@@ -113,7 +126,7 @@ import * as database     from '../database'
     font-weight: lighter;
     border-radius: 5px;
     padding: 4px 6px;
-    font-size: 20px;
+    font-size: 15px;
     cursor: pointer;
     }
 
@@ -145,6 +158,6 @@ import * as database     from '../database'
         margin-bottom: 15px;
     }
     .submit-button {
-        font-size: 20px;
+        font-size: 15px;
     }
 </style>

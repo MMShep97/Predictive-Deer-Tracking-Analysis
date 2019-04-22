@@ -4,9 +4,21 @@
       <div class="panel-heading header text-center"> Instructions </div>
       <div class="panel-body"> 
         <ol>
-          <li>Select the location of your pictures</li>
+          <li>Set the location your pictures were taken!</li>
+          <ul>
+          <li>Input the latitude, longitude coords </li>
+          <li>Make sure 91.47° W becomes -91.47</li>
+          </ul>
           <li>Upload pictures</li>
-          <li>Submit!</li>
+          <!-- <ul>
+          <li>List item 1</li>
+          <li>List item 2</li>
+          </ul>  -->
+          <li>Select the Location of your Pictures!</li>
+          <!-- <ul>
+          <li>List item 1</li>
+          <li>List item 2</li>
+          </ul> -->
         </ol>
       </div>
     </div>

@@ -16,24 +16,74 @@ var config = {
 var updates = {};
 var database = firebase.database();
 
-export function uploadToDatabase(year, month, day, hour, minute, temperature) {
+export function uploadToDatabase(year, month, day, hour, minute, lowTemp, highTemp) {
     updates['/year'] = year;
     updates['/month'] = month;
     updates['/day'] = day;
     updates['/hour'] = hour;
     updates['/minute'] = minute;
-    updates['/temperature'] = temperature
+    updates['/lowTemp'] = lowTemp;
+    updates['/highTemp'] = highTemp; 
 
     return database.ref().update(updates);
 }
 
+export function sendFileDataToDatabase(temp, callback) {
+    
+    callback.apply(args, temp[0], temp[1]); //GHCND = dataset for daily summaries
+}
+
+//Grabs temperature data 
+export function getTemperature(zip, startDate, endDate, dataset, callback, args) {
+
+    var apiKey = 'suKlQEiyzoZuQufBYvwuTWksOpgvLyhI';
+    var params = `datasetid=${dataset}&datatypeid=TMIN&datatypeid=TMAX&locationid=ZIP:${zip}&startdate=${startDate}&enddate=${endDate}&limit=5&units=standard`
+    var request = new XMLHttpRequest()
+
+    //starts request to NOAA
+    request.open('GET', `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?${params}`, true)
+    
+    //call after open, before send... sends token to header
+    request.setRequestHeader("token", apiKey);
+    
+    request.onload = function() {
+
+        // Begin accessing JSON data here
+        // var data = JSON.parse(this.response)
+        var data = JSON.parse(this.response);
+        var temperature = {};
+        console.log(data);
+
+        //success
+        if (request.status >= 200 && request.status < 400) {
+            //places low and high temperature in array, @indices 0 and 1, respectively
+            for (let i = 0; i < data.results.length; i++) {
+                if (data.results[i].datatype == 'TMIN') {
+                    temperature[0] = data.results[i].value;
+                }
+                if (data.results[i].datatype == 'TMAX') {
+                    temperature[1] = data.results[i].value;
+                }
+            }
+            args.push(temperature[0]);
+            args.push(temperature[1]);
+            callback.apply(this, args);
+        //error
+        } else {
+            console.log('fuk.')
+        }
+    }
+
+    //finish
+    request.send()
+}
 
 
 //Takes in lat & longitude, converts to FIPS code for location API and returns FIPS
 export function latLong2Fips(lat, long) {
     var request = new XMLHttpRequest()
 
-    request.open('GET', `https://geo.fcc.gov/api/census/area?lat=43.2694&lon=-91.4757&format=json`, true)
+    request.open('GET', `https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${long}&format=json`, true)
                          //https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${long}&format=json
     request.onload = function() {
 
@@ -55,34 +105,3 @@ export function latLong2Fips(lat, long) {
 
 }
 
-//Grabs temperature data 
-export function getTemperature(FIPS, startDate, endDate, dataset) {
-
-    var apiKey = 'suKlQEiyzoZuQufBYvwuTWksOpgvLyhI';
-    var params = `datasetid=${dataset}&datatypeid=TMAX&TMIN&locationid=ZIP:52240&startdate=${startDate}&enddate=${endDate}&limit=5&units=standard`
-    var request = new XMLHttpRequest()
-
-    request.open('GET', `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?${params}`, true)
-    
-    //call after open, before send
-    request.setRequestHeader("token", apiKey);
-    
-    request.onload = function() {
-
-        // Begin accessing JSON data here
-        // var data = JSON.parse(this.response)
-        var data = this.response;
-        console.log(data);
-        data = JSON.parse(data);
-        console.log(data);
-
-        if (request.status >= 200 && request.status < 400) {
-            //return county fips
-            console.log("nice");
-        } else {
-            console.log('error')
-        }
-    }
-
-    request.send()
-}
