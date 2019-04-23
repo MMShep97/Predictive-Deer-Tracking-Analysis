@@ -1,4 +1,5 @@
-var firebase = require( 'firebase');
+var firebase = require( 'firebase/app');
+require('firebase/database');
 require('firebase/firestore');
 
 
@@ -16,10 +17,11 @@ firebase.initializeApp(config);
 
 var firestore = firebase.firestore();
 var database = firebase.database();
+var imageID = 0;
 var updates = {};
 
 
-export function uploadToDatabase(year, month, day, hour, minute, lowTemp, highTemp) {
+export function uploadToFirebase(year, month, day, hour, minute, lowTemp, highTemp) {
     updates['/year'] = year;
     updates['/month'] = month;
     updates['/day'] = day;
@@ -29,6 +31,24 @@ export function uploadToDatabase(year, month, day, hour, minute, lowTemp, highTe
     updates['/highTemp'] = highTemp; 
 
     return database.ref().update(updates);
+}
+
+export function uploadToFirestore(year, month, day, hour, minute, lowTemp, highTemp) {
+    firestore.collection('/user/1/images').doc(`${imageID}`).set({
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        lowTemp: lowTemp,
+        highTemp: highTemp,
+    })
+    .then(function() { 
+        imageID++;
+    })
+    .catch(function(error) {
+        console.log("Error adding document: ", error);
+    });
 }
 
 //Grabs temperature data 

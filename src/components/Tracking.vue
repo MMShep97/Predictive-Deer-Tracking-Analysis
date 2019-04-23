@@ -24,7 +24,7 @@
                 </div>
                 <div class="panel-footer text-center">
                     <div class="footer-spacer">Your personalized best estimated Time</div>
-                    <div class="jumbotron calculated-time">8:30</div>
+                    <div class="jumbotron calculated-time">{{prediction}}</div>
                 </div>
                 
             </div>
@@ -63,6 +63,9 @@ import * as database     from '../database'
 
             //temperature 
             temperature: ["", ""],
+
+            //calculation
+            prediction: "8:30",
         }
     },
 
@@ -99,17 +102,14 @@ import * as database     from '../database'
                                 "Hour: " + this.hour + " | " + 
                                 "Minute: " + this.minute);
 
+                    setTimeout(function () {} , 2000);
                     //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-                    database.getTemperatureAndUpload(this.zip, startDate, endDate, 'GHCND', database.uploadToDatabase, 
+                    database.getTemperatureAndUpload(this.zip, startDate, endDate, 'GHCND', database.uploadToFirestore, 
                                                          [ this.year, this.month, this.day, this.hour, this.minute ] );
                 }
             }
         },
-
-        
-
-
-  }
+    }
 };
 </script>
 
