@@ -17,7 +17,6 @@ firebase.initializeApp(config);
 
 var firestore = firebase.firestore();
 var database = firebase.database();
-var imageID = 0;
 var updates = {};
 
 
@@ -33,7 +32,7 @@ export function uploadToFirebase(year, month, day, hour, minute, lowTemp, highTe
     return database.ref().update(updates);
 }
 
-export function uploadToFirestore(year, month, day, hour, minute, lowTemp, highTemp) {
+export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTemp, highTemp) {
     firestore.collection('/user/1/images').doc(`${imageID}`).set({
         year: year,
         month: month,
@@ -44,7 +43,7 @@ export function uploadToFirestore(year, month, day, hour, minute, lowTemp, highT
         highTemp: highTemp,
     })
     .then(function() { 
-        imageID++;
+        // imageID++;
     })
     .catch(function(error) {
         console.log("Error adding document: ", error);
@@ -57,6 +56,9 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
     var apiKey = 'suKlQEiyzoZuQufBYvwuTWksOpgvLyhI';
     var params = `datasetid=${dataset}&datatypeid=TMIN&datatypeid=TMAX&locationid=ZIP:${zip}&startdate=${startDate}&enddate=${endDate}&limit=5&units=standard`
     var request = new XMLHttpRequest()
+
+    console.log("params: " + params);
+    console.log(zip);
 
     //starts request to NOAA
     request.open('GET', `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?${params}`, true)
@@ -86,6 +88,7 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
             //add low and high temps to args...
             args.push(temperature[0]);
             args.push(temperature[1]);
+
             //apply args to callback (uploadToDatabase function)
             callback.apply(this, args);
         //error

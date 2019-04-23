@@ -20,7 +20,7 @@
                             <input type="file" multiple class="files">
                         </label>
                     </div>
-                    <div class="button-container"><button class="btn-info submit-button" v-on:click="processFiles">Submit</button></div>
+                    <div class="button-container"><button class="btn-info submit-button" v-on:click="getFileData">Submit</button></div>
                 </div>
                 <div class="panel-footer text-center">
                     <div class="footer-spacer">Your personalized best estimated Time</div>
@@ -53,18 +53,18 @@ import * as database     from '../database'
             long: "",
             
             //date - time
-            year: "",
-            month: "",
-            day: "",
-            hour: "",
-            minute: "",
-            fileDate: "",
-            fileTime: "",
+            year: [],
+            month: [],
+            day: [],
+            hour: [],
+            minute: [],
+            startDate: [], //used for NOAA API in function below
+            endDate: [],
 
-            //temperature 
+            //extras
             temperature: ["", ""],
-
-            //calculation
+            imageID: [],
+            imageCount: 0,
             prediction: "8:30",
         }
     },
@@ -72,41 +72,47 @@ import * as database     from '../database'
     methods: {
 
         //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
-        processFiles(e) {
+        getFileData(e) {
             let allFiles = document.querySelector('.files').files;
-            let startDate, endDate; //used for NOAA API in function below
+            let fileDate, startDate, endDate; 
             let FIPS, temperature;
+            let timeout = 0;
         
             //Then access each file's date by doing allFiles[i].lastModifiedDate
             if (allFiles !== null) {
                 for (let i = 0; i < allFiles.length; i++) {
-                    this.fileDate = allFiles.item(i).lastModifiedDate;
-                    this.year = this.fileDate.getFullYear();
-                    this.month = this.fileDate.getMonth() + 1; //0 indexed
-                    this.day = this.fileDate.getDate();
-                    this.hour = this.fileDate.getHours();
-                    this.minute = this.fileDate.getMinutes();
+                    fileDate = allFiles.item(i).lastModifiedDate;
+                    this.year.push(fileDate.getFullYear());
+                    this.month.push(fileDate.getMonth() + 1); //0 indexed
+                    this.day.push(fileDate.getDate());
+                    this.hour.push(fileDate.getHours());
+                    this.minute.push(fileDate.getMinutes());
+                    this.imageID.push(this.imageCount++);
 
                     //only need temp for one day, append 0 to month if < 10
-                    this.month < 10 ? this.month = `0${this.month}` : this.month;
-                    this.day < 10 ? this.day = `0${this.day}` : this.day;
-                    startDate = `${this.year}-${this.month}-${this.day}`;
-                    endDate = startDate;
-                    console.log("Start date: " + startDate);
+                    this.month[i] < 10 ? this.month[i] = `0${this.month[i]}` : this.month[i];
+                    this.day[i] < 10 ? this.day[i] = `0${this.day[i]}` : this.day[i];
+                    this.startDate.push(`${this.year[i]}-${this.month[i]}-${this.day[i]}`);
+                    this.endDate.push(`${this.year[i]}-${this.month[i]}-${this.day[i]}`);
 
                     //Debugging
-                    console.log("Date: " + this.fileDate);
+                    console.log("Date: " + fileDate);
                     console.log("Year: " + this.year + " | " + 
                                 "Month: " + this.month + " | " + 
                                 "Day: " + this.day + " | " + 
                                 "Hour: " + this.hour + " | " + 
                                 "Minute: " + this.minute);
-
-                    setTimeout(function () {} , 2000);
-                    //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-                    database.getTemperatureAndUpload(this.zip, startDate, endDate, 'GHCND', database.uploadToFirestore, 
-                                                         [ this.year, this.month, this.day, this.hour, this.minute ] );
+                    console.log("ImageID: " + this.imageID[i]);
                 }
+
+                for (let i = 0; i < allFiles.length; i++) {
+                    timeout += 2000;
+                    //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
+                    setTimeout(database.getTemperatureAndUpload, timeout, 
+                                    this.zip, this.startDate[i], this.endDate[i], 'GHCND', database.uploadToFirestore, 
+                                        [ this.year[i], this.month[i], this.day[i], this.hour[i], this.minute[i], this.imageID[i] ]
+                    );
+               }
             }
         },
     }
