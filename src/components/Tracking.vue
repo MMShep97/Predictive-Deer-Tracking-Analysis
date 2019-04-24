@@ -11,7 +11,7 @@
                 <div class="panel-body text-center">
                     <div class="location-input small-spacer"> 
                         <div><label class="text-center">Enter ZIP Code pictures were taken in</label></div>
-                        <input v-model="zip" type="number" placeholder="e.g. 11103" class="text-center">{{zip}}
+                        <input v-model="zip" type="number" placeholder="e.g. 11103" class="text-center">
                         <!-- <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}} -->
                     </div>
                     <div class="file-input">
@@ -51,20 +51,8 @@ import * as database     from '../database'
             zip: "",
             lat: "",
             long: "",
-            
-            //date - time
-            year: [],
-            month: [],
-            day: [],
-            hour: [],
-            minute: [],
-            startDate: [], //used for NOAA API in function below
-            endDate: [],
 
             //extras
-            temperature: ["", ""],
-            imageID: [],
-            imageCount: 0,
             prediction: "8:30",
         }
     },
@@ -74,43 +62,54 @@ import * as database     from '../database'
         //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
         getFileData(e) {
             let allFiles = document.querySelector('.files').files;
-            let fileDate, startDate, endDate; 
-            let FIPS, temperature;
+            let fileDate;
+            let FIPS;
             let timeout = 0;
-        
+
+            //date - time
+            let year = [];
+            let month = [];
+            let day = [];
+            let hour = [];
+            let minute = [];
+            let startDate = []; //used for NOAA API in function below
+            let endDate = [];
+            let imageID = [];
+            let imageCount = 0;
+
             //Then access each file's date by doing allFiles[i].lastModifiedDate
             if (allFiles !== null) {
                 for (let i = 0; i < allFiles.length; i++) {
                     fileDate = allFiles.item(i).lastModifiedDate;
-                    this.year.push(fileDate.getFullYear());
-                    this.month.push(fileDate.getMonth() + 1); //0 indexed
-                    this.day.push(fileDate.getDate());
-                    this.hour.push(fileDate.getHours());
-                    this.minute.push(fileDate.getMinutes());
-                    this.imageID.push(this.imageCount++);
+                    year.push(fileDate.getFullYear());
+                    month.push(fileDate.getMonth() + 1); //0 indexed
+                    day.push(fileDate.getDate());
+                    hour.push(fileDate.getHours());
+                    minute.push(fileDate.getMinutes());
+                    imageID.push(imageCount++);
 
                     //only need temp for one day, append 0 to month if < 10
-                    this.month[i] < 10 ? this.month[i] = `0${this.month[i]}` : this.month[i];
-                    this.day[i] < 10 ? this.day[i] = `0${this.day[i]}` : this.day[i];
-                    this.startDate.push(`${this.year[i]}-${this.month[i]}-${this.day[i]}`);
-                    this.endDate.push(`${this.year[i]}-${this.month[i]}-${this.day[i]}`);
+                    month[i] < 10 ? month[i] = `0${month[i]}` : month[i];
+                    day[i] < 10 ? day[i] = `0${day[i]}` : day[i];
+                    startDate.push(`${year[i]}-${month[i]}-${day[i]}`);
+                    endDate.push(`${year[i]}-${month[i]}-${day[i]}`);
 
                     //Debugging
                     console.log("Date: " + fileDate);
-                    console.log("Year: " + this.year + " | " + 
-                                "Month: " + this.month + " | " + 
-                                "Day: " + this.day + " | " + 
-                                "Hour: " + this.hour + " | " + 
-                                "Minute: " + this.minute);
-                    console.log("ImageID: " + this.imageID[i]);
+                    console.log("Year: " + year + " | " + 
+                                "Month: " + month + " | " + 
+                                "Day: " + day + " | " + 
+                                "Hour: " + hour + " | " + 
+                                "Minute: " + minute);
+                    console.log("ImageID: " + imageID);
                 }
 
                 for (let i = 0; i < allFiles.length; i++) {
-                    timeout += 2000;
+                    timeout += 250;
                     //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
                     setTimeout(database.getTemperatureAndUpload, timeout, 
-                                    this.zip, this.startDate[i], this.endDate[i], 'GHCND', database.uploadToFirestore, 
-                                        [ this.year[i], this.month[i], this.day[i], this.hour[i], this.minute[i], this.imageID[i] ]
+                                    this.zip, startDate[i], endDate[i], 'GHCND', database.uploadToFirestore, 
+                                        [ year[i], month[i], day[i], hour[i], minute[i], imageID[i] ]
                     );
                }
             }

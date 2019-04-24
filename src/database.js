@@ -43,7 +43,7 @@ export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTe
         highTemp: highTemp,
     })
     .then(function() { 
-        // imageID++;
+        
     })
     .catch(function(error) {
         console.log("Error adding document: ", error);
@@ -76,13 +76,20 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
 
         //success
         if (request.status >= 200 && request.status < 400) {
-            //places low and high temperature in array, @indices 0 and 1, respectively
-            for (let i = 0; i < data.results.length; i++) {
-                if (data.results[i].datatype == 'TMIN') {
-                    temperature[0] = data.results[i].value;
-                }
-                if (data.results[i].datatype == 'TMAX') {
-                    temperature[1] = data.results[i].value;
+            
+            //request gives no TMAX or TMIN
+            if (data.results == undefined)  {
+                temperature[0] = null;
+                temperature[1] = null;
+            //result returns TMAX/TMIN
+            } else {
+                for (let i = 0; i < data.results.length; i++) {
+                    if (data.results[i].datatype == 'TMIN') {
+                        temperature[0] = data.results[i].value;
+                    }
+                    if (data.results[i].datatype == 'TMAX') {
+                        temperature[1] = data.results[i].value;
+                    }
                 }
             }
             //add low and high temps to args...
