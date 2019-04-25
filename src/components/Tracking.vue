@@ -26,11 +26,12 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading text-center header-small">Results</div>
-                    <div class="col-sm-3 jumbotron text-center">Result</div>
-                    <div class="col-sm-3 jumbotron text-center">Result</div>
-                    <div class="col-sm-3 jumbotron text-center">Result</div>
-                    <div class="col-sm-3 jumbotron text-center">Result</div>
-                
+                    <div class="">
+                        <div class="col-sm-3 jumbotron text-center">Result</div>
+                        <div class="col-sm-3 jumbotron text-center">Result</div>
+                        <div class="col-sm-3 jumbotron text-center">Result</div>
+                        <div class="col-sm-3 jumbotron text-center">Result</div>
+                    </div>
             </div>
             <!-- <div class="panel panel-default text-center">
                 <div class="panel-heading text-center header">Result</div>
@@ -157,6 +158,10 @@ import * as database     from '../database'
 
     .small-spacer {
         margin-bottom: 10px;
+    }
+
+    .medium-spacer-top {
+        margin-top: 30px;
     }
 
     .footer-spacer {
