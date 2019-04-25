@@ -50,7 +50,7 @@ export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTe
     });
 }
 
-//Grabs temperature data 
+//Grabs temperature data and calls uploadToFirestore function to upload all data
 export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callback, args) {
 
     var apiKey = 'suKlQEiyzoZuQufBYvwuTWksOpgvLyhI';
@@ -100,7 +100,7 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
             callback.apply(this, args);
         //error
         } else {
-            console.log('fuk.')
+            console.log('err')
         }
     }
 

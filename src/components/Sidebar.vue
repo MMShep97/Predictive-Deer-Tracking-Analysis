@@ -1,20 +1,25 @@
 <template>
-  <div class="panel-group">
+  <div class="panel-group information-group">
     <div class="panel panel-info info-panel">
       <div class="panel-heading header text-center"> Instructions </div>
       <div class="panel-body"> 
-        <ol>
-          <li>Set the location your pictures were taken!</li>
-          <ul>
+        <ol class="instructions">
+          <li>Set your ZIP Code to the the location of the images you will be uploading.</li>
+          <!-- <ul>
           <li>Input the latitude, longitude coords </li>
           <li>Make sure 91.47° W becomes -91.47</li>
-          </ul>
-          <li>Upload pictures</li>
+          </ul> -->
+          <li>Click on the <i>"Select Files"</i> button to open up your file directory. 
+              From there, select every picture you want analyzed. 
+              
+          </li>
           <!-- <ul>
           <li>List item 1</li>
           <li>List item 2</li>
           </ul>  -->
-          <li>Select the Location of your Pictures!</li>
+          <li>Hit the <i>"Submit"</i> button. Everything will be processed and the progress bar will keep
+              you updated on the status of the analysis!
+          </li>
           <!-- <ul>
           <li>List item 1</li>
           <li>List item 2</li>
@@ -27,12 +32,16 @@
 
     <div class="panel panel-info">
       <div class="panel-heading header text-center"> Additional Information </div>
-      <div class="panel-body"> 
-        <ol>
-          <li>Select the location of your pictures</li>
-          <li>Upload pictures</li>
-          <li>Submit!</li>
-        </ol>
+      <div class="panel-body additional-information"> 
+        <ul>
+          <li><i>Helpful Tip:</i> ctrl + click selects a new file while keeping the previous files selected.
+                                  You can also use shift + click as a powerfully similar selection tool.
+          </li>
+          <li>Expect longer wait times the more files you choose to upload.</li>
+          <li>In very rare circumstances, the zip code you provide may not work. 
+              Use a different ZIP!
+          </li>
+        </ul>
       </div>
     </div>
 
@@ -46,16 +55,23 @@
 </script>
 
 <style>
+
+  .information-group {
+    font-size: 13px;
+  }
+
   .header {
     font-weight: bold;
     text-transform: uppercase;
   }
 
-  .panel-body {
-    height: 30vh;
+  .header-small {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
   }
 
   .panel-spacer {
-    padding-top: 18px;
+    padding-top: 12px;
   }
 </style>

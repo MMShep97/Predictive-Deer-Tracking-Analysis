@@ -11,7 +11,14 @@
           <router-link tag="li" to="/" class="nav-item"><a>Home</a></router-link>
           <router-link tag="li" to="/tracking" class="nav-item"><a>Tracking</a></router-link>
           <router-link tag="li" to="/gallery" class="nav-item"><a>Gallery</a></router-link>
-          <router-link tag="li" to="/login" class="nav-item"><a>Login</a></router-link>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <router-link tag="li" to="/login" class="nav-item">
+            <a><span class="glyphicon glyphicon-user"></span> Sign Up</a>
+          </router-link>
+          <router-link tag="li" to="/login" class="nav-item">
+            <a><span class="glyphicon glyphicon-log-in"></span> Login</a>
+          </router-link>
         </ul>
       </div>
     </nav>
@@ -49,4 +56,5 @@
   color: #2c3e50;
   margin-top: 60px;
 }
+
 </style>

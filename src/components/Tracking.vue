@@ -10,7 +10,7 @@
                 <div class="panel-heading text-center header">Prediction Tool</div>
                 <div class="panel-body text-center">
                     <div class="location-input small-spacer"> 
-                        <div><label class="text-center">Enter ZIP Code pictures were taken in</label></div>
+                        <div><label class="text-center small-spacer">Enter ZIP Code pictures were taken in</label></div>
                         <input v-model="zip" type="number" placeholder="e.g. 11103" class="text-center">
                         <!-- <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}} -->
                     </div>
@@ -22,12 +22,22 @@
                     </div>
                     <div class="button-container"><button class="btn-info submit-button" v-on:click="getFileData">Submit</button></div>
                 </div>
-                <div class="panel-footer text-center">
-                    <div class="footer-spacer">Your personalized best estimated Time</div>
-                    <div class="jumbotron calculated-time">{{prediction}}</div>
-                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading text-center header-small">Results</div>
+                    <div class="col-sm-3 jumbotron text-center">Result</div>
+                    <div class="col-sm-3 jumbotron text-center">Result</div>
+                    <div class="col-sm-3 jumbotron text-center">Result</div>
+                    <div class="col-sm-3 jumbotron text-center">Result</div>
                 
             </div>
+            <!-- <div class="panel panel-default text-center">
+                <div class="panel-heading text-center header">Result</div>
+                <div class="panel-body text-center">
+                    
+                </div>
+            </div> -->
         </div>
   </div>
 </template>
@@ -105,7 +115,7 @@ import * as database     from '../database'
                 }
 
                 for (let i = 0; i < allFiles.length; i++) {
-                    timeout += 250;
+                    timeout += 350;
                     //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
                     setTimeout(database.getTemperatureAndUpload, timeout, 
                                     this.zip, startDate[i], endDate[i], 'GHCND', database.uploadToFirestore, 
@@ -151,6 +161,10 @@ import * as database     from '../database'
 
     .footer-spacer {
         margin: 10px 0 10px 0;
+    }
+
+    .result {
+        text-decoration: underline;
     }
 
     .calculated-time {
