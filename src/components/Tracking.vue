@@ -26,23 +26,20 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading text-center header-small">Results</div>
-                    <div class="">
-                        <div class="col-sm-3 jumbotron text-center">Result</div>
-                        <div class="col-sm-3 jumbotron text-center">Result</div>
-                        <div class="col-sm-3 jumbotron text-center">Result</div>
-                        <div class="col-sm-3 jumbotron text-center">Result</div>
-                    </div>
             </div>
-            <!-- <div class="panel panel-default text-center">
-                <div class="panel-heading text-center header">Result</div>
-                <div class="panel-body text-center">
-                    
+                <div class="result-section jumbotron">
+                    <div class="col-sm-4 text-center">Result</div>
+                    <div class="col-sm-4 text-center">Result</div>
+                    <div class="col-sm-4 text-center">Result</div>
                 </div>
-            </div> -->
+
+                    <div id="myProgress">
+                        <div id="myBar"></div>
+                    </div>
+                    <div class="progress-text text-center">{{progressTotal}}</div>
         </div>
   </div>
 </template>
-
 
 <script>
 //Allow sidebar component to be used
@@ -65,17 +62,23 @@ import * as database     from '../database'
 
             //extras
             prediction: "8:30",
+            progressIncrement: 0,
+            progressAccumulation: 0,
+            progressTotal: 0,
         }
     },
 
     methods: {
 
         //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
-        getFileData(e) {
+        async getFileData(e) {
             let allFiles = document.querySelector('.files').files;
             let fileDate;
             let FIPS;
             let timeout = 0;
+
+            this.progressIncrement = allFiles.length * .01;
+            this.progressTotal = allFiles.length;
 
             //date - time
             let year = [];
@@ -105,28 +108,73 @@ import * as database     from '../database'
                     startDate.push(`${year[i]}-${month[i]}-${day[i]}`);
                     endDate.push(`${year[i]}-${month[i]}-${day[i]}`);
 
-                    //Debugging
-                    console.log("Date: " + fileDate);
-                    console.log("Year: " + year + " | " + 
-                                "Month: " + month + " | " + 
-                                "Day: " + day + " | " + 
-                                "Hour: " + hour + " | " + 
-                                "Minute: " + minute);
-                    console.log("ImageID: " + imageID);
+                    // //Debugging
+                    // console.log("Date: " + fileDate);
+                    // console.log("Year: " + year + " | " + 
+                    //             "Month: " + month + " | " + 
+                    //             "Day: " + day + " | " + 
+                    //             "Hour: " + hour + " | " + 
+                    //             "Minute: " + minute);
+                    // console.log("ImageID: " + imageID);
                 }
 
+               var temperaturePromises = [];
+               var firestorePromises = [];
+               var temperatures = [];
+
+                    for (let i = 0; i < allFiles.length; i++) {
+                        timeout += 100;
+                        console.log("before function");
+                        //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
+                        temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));   
+                    }
+
+                    //Wait for every api call to get their temperatures, then return them all into one promise
+                    //THEN, set that return value to temperatures array to use below
+                    await Promise.all(temperaturePromises).then(function(temp) {
+                        temperatures = temp;
+                        console.log("In then part");
+                    });
+
+                console.log(temperatures);
+
                 for (let i = 0; i < allFiles.length; i++) {
-                    timeout += 350;
-                    //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-                    setTimeout(database.getTemperatureAndUpload, timeout, 
-                                    this.zip, startDate[i], endDate[i], 'GHCND', database.uploadToFirestore, 
-                                        [ year[i], month[i], day[i], hour[i], minute[i], imageID[i] ]
-                    );
-               }
+                    // console.log("HIGH: " + temperatures[i][1] + " | " + 
+                    //             "LOW: " + temperatures[i][0] + " | " + 
+                    //             "Year: " + year[i] + " | " + 
+                    //             "Month: " + month[i] + " | " + 
+                    //             "Day: " + day[i] + " | " + 
+                    //             "Hour: " + hour[i] + " | " + 
+                    //             "Minute: " + minute[i] + " | " + 
+                    //             "ImageID: " + imageID[i]);
+                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i],
+                                                                        hour[i], minute[i], imageID[i], 
+                                                                            temperatures[i][0], temperatures[i][1])
+                                           );
+                    //                        console.log("IN FOR LOOP");
+                }
+
+                //Wait for all images to be uploaded, then proceed
+                await Promise.all(firestorePromises);
+                console.log("done w/ firestore?");
+
+                //DO CALCULATION
+
+            
             }
         },
     }
 };
+
+                //for (let i = 0; i < allFiles.length; i++) {
+            //         timeout += 350;
+
+            //         //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
+            //         // setTimeout(database.getTemperatureAndUpload, timeout, 
+            //         //                 this.zip, startDate[i], endDate[i], 'GHCND', database.uploadToFirestore, 
+            //         //                     [ year[i], month[i], day[i], hour[i], minute[i], imageID[i] ]
+            //         // );
+            //    }
 </script>
 
 <style type="text/css">
@@ -182,4 +230,19 @@ import * as database     from '../database'
     .submit-button {
         font-size: 15px;
     }
+
+    /*Progress bar*/
+    #myProgress {
+        width: 100%;
+        background-color: grey;
+        opacity: .3;
+    }
+
+    #myBar {
+        width: 20%;
+        height: 15px;
+        background-color: forestgreen;;
+    }
 </style>
+
+

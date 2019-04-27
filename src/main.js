@@ -8,6 +8,14 @@ import LogTime 		from './components/LogTime'
 import Gallery		from './components/Gallery'
 import Login		from './components/Login'
 
+/*Bootstrap-vue config*/
+// import 'bootstrap/dist/css/bootstrap.css'
+// import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import PortalVue 	from 'portal-vue'
+// import BoostrapVue 	from 'bootstrap-vue'
+// Vue.use(PortalVue)
+// Vue.use(BoostrapVue)
+
 import VueRouter 	from 'vue-router'
 import VueResource 	from 'vue-resource'
 
