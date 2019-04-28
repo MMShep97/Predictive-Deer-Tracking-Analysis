@@ -34,9 +34,10 @@
                 </div>
 
                     <div id="myProgress">
-                        <div id="myBar"></div>
+                        <div id="myBar">{{progressAccumulation}}</div>
                     </div>
-                    <div class="progress-text text-center"> {{progressAccumulation}}</div>
+                    <div class="progress-text text-center"></div>
+                    <div class="text-center"><a href="#"><span></span>Scroll</a></div>
         </div>
   </div>
 </template>
@@ -146,7 +147,7 @@ import * as database     from '../database'
                         console.log("before function");
                         //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
                         temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));  
-                        await wait(200); 
+                        await wait(300); 
                         this.progressAccumulation += 1;
                     }
 
@@ -170,8 +171,8 @@ import * as database     from '../database'
                     //             "Hour: " + hour[i] + " | " + 
                     //             "Minute: " + minute[i] + " | " + 
                     //             "ImageID: " + imageID[i]);
-                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i], dayOfYear[i], hour[i], minute[i],
-                                                                      imageID[i], temperatures[i][0], temperatures[i][1])
+                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i], hour[i], minute[i], imageID[i],
+                                                                       temperatures[i][0], temperatures[i][1], dayOfYear[i])
                                            );
                 }
 
@@ -257,6 +258,7 @@ import * as database     from '../database'
         background-color: grey;
         opacity: .3;
         transition: all 3s linear;
+        border-radius: 3px;
     }
 
     #myBar {
@@ -264,7 +266,83 @@ import * as database     from '../database'
         height: 15px;
         background-color: forestgreen;
         transition: all .3s linear;
+        border-radius: 3px;
     }
+
+    /*Arrow down*/
+    #section03 a {
+  padding-top: 60px;
+}
+#section03 a span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+  border: 1px solid #fff;
+  border-radius: 100%;
+  box-sizing: border-box;
+}
+#section03 a span::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: '';
+  width: 16px;
+  height: 16px;
+  margin: -12px 0 0 -8px;
+  border-left: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  box-sizing: border-box;
+}
+#section03 a span::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  content: '';
+  width: 44px;
+  height: 44px;
+  box-shadow: 0 0 0 0 rgba(255,255,255,.1);
+  border-radius: 100%;
+  opacity: 0;
+  -webkit-animation: sdb03 3s infinite;
+  animation: sdb03 3s infinite;
+  box-sizing: border-box;
+}
+@-webkit-keyframes sdb03 {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    box-shadow: 0 0 0 60px rgba(255,255,255,.1);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sdb03 {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    box-shadow: 0 0 0 60px rgba(255,255,255,.1);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 </style>
 
 
