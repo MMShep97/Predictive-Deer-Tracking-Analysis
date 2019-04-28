@@ -36,7 +36,7 @@
                     <div id="myProgress">
                         <div id="myBar"></div>
                     </div>
-                    <div class="progress-text text-center">{{progressTotal}}</div>
+                    <div class="progress-text text-center"> {{progressAccumulation}}</div>
         </div>
   </div>
 </template>
@@ -68,6 +68,14 @@ import * as database     from '../database'
         }
     },
 
+    watch: {
+        //For progress bar, stylizing/updates
+        progressAccumulation: function() {
+            document.querySelector('#myBar').style.width = `${this.progressAccumulation}%`;
+            document.querySelector('#myProgress').style.opacity = 1.0;
+        }
+    },
+
     methods: {
 
         //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
@@ -84,6 +92,7 @@ import * as database     from '../database'
             let year = [];
             let month = [];
             let day = [];
+            let dayOfYear = [];
             let hour = [];
             let minute = [];
             let startDate = []; //used for NOAA API in function below
@@ -102,31 +111,43 @@ import * as database     from '../database'
                     minute.push(fileDate.getMinutes());
                     imageID.push(imageCount++);
 
-                    //only need temp for one day, append 0 to month if < 10
+                    //only need temp for one day, append 0 to month if < 10 (formatting for NOAA API)
                     month[i] < 10 ? month[i] = `0${month[i]}` : month[i];
                     day[i] < 10 ? day[i] = `0${day[i]}` : day[i];
                     startDate.push(`${year[i]}-${month[i]}-${day[i]}`);
                     endDate.push(`${year[i]}-${month[i]}-${day[i]}`);
 
-                    // //Debugging
-                    // console.log("Date: " + fileDate);
-                    // console.log("Year: " + year + " | " + 
-                    //             "Month: " + month + " | " + 
-                    //             "Day: " + day + " | " + 
-                    //             "Hour: " + hour + " | " + 
-                    //             "Minute: " + minute);
-                    // console.log("ImageID: " + imageID);
+                    //Getting day with respect the year (out of 365)
+                    var start = new Date(fileDate.getFullYear(), 0, 0);
+                    var diff = (fileDate - start) + ((start.getTimezoneOffset() - fileDate.getTimezoneOffset()) * 60 * 1000);
+                    var oneDay = 1000 * 60 * 60 * 24;
+                    dayOfYear.push(Math.floor(diff / oneDay));
+                    console.log('Day of year: ' + dayOfYear[i]);
+
+                    //Debugging
+                    console.log("Year: " + year[i] + " | " + 
+                                "Month: " + month[i] + " | " + 
+                                "Day: " + day[i] + " | " + 
+                                "Hour: " + hour[i] + " | " + 
+                                "Minute: " + minute[i] + " | " + 
+                                "ImageID: " + imageID[i]);
                 }
 
-               var temperaturePromises = [];
-               var firestorePromises = [];
-               var temperatures = [];
+               let temperaturePromises = [];
+               let firestorePromises = [];
+               let temperatures = [];
+
+                //Creates promise function, allowing setTimeout to be used properly with api calls
+               const wait = (timeout) => new Promise(
+                (resolve, reject) => setTimeout(resolve, timeout)
+                );
 
                     for (let i = 0; i < allFiles.length; i++) {
-                        timeout += 100;
                         console.log("before function");
                         //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-                        temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));   
+                        temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));  
+                        await wait(200); 
+                        this.progressAccumulation += 1;
                     }
 
                     //Wait for every api call to get their temperatures, then return them all into one promise
@@ -137,6 +158,8 @@ import * as database     from '../database'
                     });
 
                 console.log(temperatures);
+                
+                
 
                 for (let i = 0; i < allFiles.length; i++) {
                     // console.log("HIGH: " + temperatures[i][1] + " | " + 
@@ -147,22 +170,19 @@ import * as database     from '../database'
                     //             "Hour: " + hour[i] + " | " + 
                     //             "Minute: " + minute[i] + " | " + 
                     //             "ImageID: " + imageID[i]);
-                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i],
-                                                                        hour[i], minute[i], imageID[i], 
-                                                                            temperatures[i][0], temperatures[i][1])
+                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i], dayOfYear[i], hour[i], minute[i],
+                                                                      imageID[i], temperatures[i][0], temperatures[i][1])
                                            );
-                    //                        console.log("IN FOR LOOP");
                 }
 
                 //Wait for all images to be uploaded, then proceed
                 await Promise.all(firestorePromises);
-                console.log("done w/ firestore?");
-
-                //DO CALCULATION
-
-            
+                
+                //Do calculation once firestore finishes uploading
             }
         },
+
+        
     }
 };
 
@@ -236,12 +256,14 @@ import * as database     from '../database'
         width: 100%;
         background-color: grey;
         opacity: .3;
+        transition: all 3s linear;
     }
 
     #myBar {
-        width: 20%;
+        width: 0%;
         height: 15px;
-        background-color: forestgreen;;
+        background-color: forestgreen;
+        transition: all .3s linear;
     }
 </style>
 

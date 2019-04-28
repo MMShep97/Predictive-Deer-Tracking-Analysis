@@ -30,7 +30,7 @@ export function uploadToFirebase(year, month, day, hour, minute, lowTemp, highTe
     return database.ref().update(updates);
 }
 
-export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTemp, highTemp) {
+export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTemp, highTemp, dayOfYear) {
     firestore.collection('/user/1/images').doc(`${imageID}`).set({
         year: year,
         month: month,
@@ -39,6 +39,7 @@ export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTe
         minute: minute,
         lowTemp: lowTemp,
         highTemp: highTemp,
+        dayOfYear: dayOfYear,
     })
     .then(function() { 
         console.log("in firestore function then");
