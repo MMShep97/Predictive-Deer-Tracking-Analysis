@@ -11,7 +11,7 @@
                 <div class="panel-body text-center">
                     <div class="location-input small-spacer"> 
                         <div><label class="text-center small-spacer">Enter ZIP Code pictures were taken in</label></div>
-                        <input v-model="zip" type="number" placeholder="e.g. 11103" class="text-center">
+                        <input v-model="zip" type="number" placeholder="e.g. 52162" class="text-center">
                         <!-- <input v-model="long" type="number" placeholder="Longitude" class="text-center">{{long}} -->
                     </div>
                     <div class="file-input">
@@ -34,10 +34,10 @@
                 </div>
 
                     <div id="myProgress">
-                        <div id="myBar">{{progressAccumulation}}</div>
+                        <div id="myBar" class="text-center">{{progressAccumulation}}%</div>
                     </div>
                     <div class="progress-text text-center"></div>
-                    <div class="text-center"><a href="#"><span></span>Scroll</a></div>
+                    <!-- <div class="text-center"><a href="#"><span></span>Scroll</a></div> -->
         </div>
   </div>
 </template>
@@ -79,15 +79,16 @@ import * as database     from '../database'
 
     methods: {
 
-        //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database
+        //overarching function, parses, uses (database.js) functions to find temperature, uploads data to database, does bayesian
         async getFileData(e) {
             let allFiles = document.querySelector('.files').files;
             let fileDate;
             let FIPS;
             let timeout = 0;
 
+            //Use total as the constraint for progress bar to increase, add inc to total everytime constraint is reached
             this.progressIncrement = allFiles.length * .01;
-            this.progressTotal = allFiles.length;
+            this.progressTotal = this.progressIncrement;
 
             //date - time
             let year = [];
@@ -100,6 +101,8 @@ import * as database     from '../database'
             let endDate = [];
             let imageID = [];
             let imageCount = 0;
+            let averageHighTemp = [23, 29, 42, 57, 69, 78, 82, 79, 72, 60, 43, 28];
+	        let averageLowTemp = [6, 12, 23, 36, 47, 57, 61, 59, 50, 39, 26, 12];
 
             //Then access each file's date by doing allFiles[i].lastModifiedDate
             if (allFiles !== null) {
@@ -123,16 +126,21 @@ import * as database     from '../database'
                     var diff = (fileDate - start) + ((start.getTimezoneOffset() - fileDate.getTimezoneOffset()) * 60 * 1000);
                     var oneDay = 1000 * 60 * 60 * 24;
                     dayOfYear.push(Math.floor(diff / oneDay));
-                    console.log('Day of year: ' + dayOfYear[i]);
 
                     //Debugging
-                    console.log("Year: " + year[i] + " | " + 
-                                "Month: " + month[i] + " | " + 
-                                "Day: " + day[i] + " | " + 
-                                "Hour: " + hour[i] + " | " + 
-                                "Minute: " + minute[i] + " | " + 
-                                "ImageID: " + imageID[i]);
+                    // console.log("Year: " + year[i] + " | " + 
+                    //             "Month: " + month[i] + " | " + 
+                    //             "Day: " + day[i] + " | " + 
+                    //             "Hour: " + hour[i] + " | " + 
+                    //             "Minute: " + minute[i] + " | " + 
+                    //             "ImageID: " + imageID[i]);
                 }
+
+                //Get difference b/w earliest and latest file dates
+                const earliestFileDate = allFiles.item(0).lastModifiedDate;
+                const latestFileDate = allFiles.item(allFiles.length - 1).lastModifiedDate;
+                const diffTime = Math.abs(latestFileDate.getTime() - earliestFileDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
 
                let temperaturePromises = [];
                let firestorePromises = [];
@@ -144,23 +152,33 @@ import * as database     from '../database'
                 );
 
                     for (let i = 0; i < allFiles.length; i++) {
-                        console.log("before function");
                         //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
                         temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));  
+                        //NOAA restricts calls to 5 per second
                         await wait(300); 
-                        this.progressAccumulation += 1;
+                        //Progress bar
+
+                        if (this.progressAccumulation != 100) {
+                            if (i == allFiles.length - 1) {
+                                this.progressAccumulation = 100;
+                            }
+                            else {
+                                while (i + 1 > this.progressTotal) {
+                                    this.progressAccumulation += 1;
+                                    this.progressTotal += this.progressIncrement;
+                                }
+                            }
+                        }
+                        
                     }
 
                     //Wait for every api call to get their temperatures, then return them all into one promise
                     //THEN, set that return value to temperatures array to use below
                     await Promise.all(temperaturePromises).then(function(temp) {
                         temperatures = temp;
-                        console.log("In then part");
                     });
 
-                console.log(temperatures);
-                
-                
+                    console.log(temperatures);
 
                 for (let i = 0; i < allFiles.length; i++) {
                     // console.log("HIGH: " + temperatures[i][1] + " | " + 
@@ -179,11 +197,88 @@ import * as database     from '../database'
                 //Wait for all images to be uploaded, then proceed
                 await Promise.all(firestorePromises);
                 
-                //Do calculation once firestore finishes uploading
+                let time = [];
+                let good = []; 
+                let test = [];
+                let selectedDay = 250;
+                let selectedMonth = 9;
+                let selectedTime = 14;
+                let selectedHighTemp = 80;
+                let selectedLowTemp = 51;
+
+                for (let i = 0; i < allFiles.length; i++){
+                    time[i] = 2*hour[i] + Math.round(minute[i]/30);
+
+                    if (time[i] == 48){
+                        time[i] = 0;
+                    }
+                }
+                let i = 0;
+
+                while (i < (imageCount - 1)) {
+                    test = ([day[i], time[i]]); 
+                    good.push(i);   
+                    i = i + 1;
+                    
+                    if (i == (imageCount - 2)) {     
+                        break;
+                    }
+                    
+                    while (test[0] == day[i+1] && test[1] == time[i+1]){
+                        i = i + 1;
+                        
+                        if (i == (imageCount - 2)){      
+                            break;
+                        }
+                    }
+                }
+
+        let sightingsTime = new Array(48).fill(0);
+        let sightingsDay = new Array(365).fill(0);
+        let sightingsHighTemp = new Array(120).fill(0);
+        let sightingsLowTemp = new Array(120).fill(0);
+
+        for (let i = 0; i < good.length; i++){
+            sightingsTime[time[good[i]]] = sightingsTime[time[good[i]]] + 1;
+            sightingsDay[dayOfYear[good[i]]] = sightingsDay[dayOfYear[good[i]]] + 1;
+            sightingsHighTemp[temperatures[good[i]][1]] = sightingsHighTemp[temperatures[good[i]][1]] + 1;
+            sightingsLowTemp[temperatures[good[i]][0]] = sightingsLowTemp[temperatures[good[i]][0]] + 1;
+        }
+		
+		
+        let pDeer = good.length / (diffDays * 48);
+        let pTimeGivenDeer = sightingsTime[selectedTime] / good.length;
+        let pDeerGivenTime = (pTimeGivenDeer * pDeer) * 48;
+        let pDayGivenDeer = sightingsDay[selectedDay] / good.length;
+		
+		let pHighTemp = Math.exp(-Math.pow(selectedHighTemp - 55.3, 2) / 200)/Math.sqrt(200 * Math.PI);
+		let pLowTemp = Math.exp(-Math.pow(selectedLowTemp - 35.6, 2) / 200)/Math.sqrt(200 * Math.PI);
+		
+		let pHighTempGivenDeer = sightingsHighTemp[selectedHighTemp] / good.length;
+		let pLowTempGivenDeer = sightingsLowTemp[selectedLowTemp] / good.length;
+		
+		let pHighTempGivenDay = Math.exp(-Math.pow(selectedHighTemp - averageHighTemp[selectedMonth-1], 2) / 200)/Math.sqrt(200 * Math.PI);
+		let pLowTempGivenDay = Math.exp(-Math.pow(selectedLowTemp - averageLowTemp[selectedMonth-1], 2) / 200)/Math.sqrt(200 * Math.PI);
+		
+		let pDeerGivenHighTemp = (pDeer * pHighTempGivenDeer) / pHighTemp;
+		let pDeerGivenLowTemp = (pDeer * pLowTempGivenDeer) / pLowTemp;
+		
+		let pDeerGivenHighTempDayTime = (pDeer * pHighTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * diffDays * 48) / pHighTempGivenDay;
+		let pDeerGivenLowTempDayTime = (pDeer * pLowTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * diffDays * 48) / pLowTempGivenDay;
+		
+        console.log("Result: " + pDeerGivenTime);
+        console.log("Sightings time: " + sightingsTime);
+        console.log("Sightings day: " + sightingsDay);
+        console.log("pDeer: " + pDeer);
+        console.log("pTimeGivenDeer: " + pTimeGivenDeer);
+        console.log("pDayGivenDeer: " + pDayGivenDeer);
+        console.log("pDeerGivenTime: " + pDeerGivenTime);
+        console.log("pDeerGivenHighTemp: " + pDeerGivenHighTemp);
+        console.log("pDeerGivenLowTemp: " + pDeerGivenLowTemp);
+        console.log("pDeerGivenHighTempDayTime: " + pDeerGivenHighTempDayTime);
+        console.log("pDeerGivenLowTempDayTime: " + pDeerGivenLowTempDayTime);
             }
         },
-
-        
     }
 };
 
@@ -265,8 +360,9 @@ import * as database     from '../database'
         width: 0%;
         height: 15px;
         background-color: forestgreen;
-        transition: all .3s linear;
+        transition: all .6s linear;
         border-radius: 3px;
+        font-size: 12px;
     }
 
     /*Arrow down*/

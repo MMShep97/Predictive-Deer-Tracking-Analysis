@@ -42,7 +42,6 @@ export function uploadToFirestore(year, month, day, hour, minute, imageID, lowTe
         dayOfYear: dayOfYear,
     })
     .then(function() { 
-        console.log("in firestore function then");
     })
     .catch(function(error) {
         console.log("Error adding document: ", error);
@@ -57,9 +56,6 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
     let request = new XMLHttpRequest()
     let temperature = {};
 
-    // console.log("params: " + params);
-    // console.log(zip);
-
     //starts request to NOAA
     request.open('GET', `https://www.ncdc.noaa.gov/cdo-web/api/v2/data?${params}`, true)
     
@@ -72,8 +68,6 @@ export function getTemperatureAndUpload(zip, startDate, endDate, dataset, callba
         // var data = JSON.parse(this.response)
         let data = JSON.parse(this.response);
         
-        console.log(data);
-
         //success
         if (request.status >= 200 && request.status < 400) {
             
@@ -130,7 +124,6 @@ export function getTemperature(zip, startDate, endDate, dataset) {
 
             // Begin accessing JSON data here
             let data = JSON.parse(this.response);
-            console.log(data);
 
             //success
             if (request.status >= 200 && request.status < 400) {
