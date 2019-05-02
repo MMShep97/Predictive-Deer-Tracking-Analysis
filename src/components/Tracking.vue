@@ -28,16 +28,18 @@
                 <div class="panel-heading text-center header-small">Results</div>
             </div>
                 <div class="result-section jumbotron">
-                    <div class="col-sm-4 text-center">Result</div>
-                    <div class="col-sm-4 text-center">Result</div>
-                    <div class="col-sm-4 text-center">Result</div>
+                    <div class="col-sm-6 text-center deer-given-time">
+                        <div class="deer-given-time-result"></div>
+                    </div>
+                    <div class="col-sm-6 text-center deer-given-day-time">
+                        <div class="deer-given-day-time-result"></div>
+                    </div>
                 </div>
 
-                    <div id="myProgress">
-                        <div id="myBar" class="text-center">{{progressAccumulation}}%</div>
-                    </div>
-                    <div class="progress-text text-center"></div>
-                    <!-- <div class="text-center"><a href="#"><span></span>Scroll</a></div> -->
+                <div id="myProgress">
+                    <div id="myBar" class="text-center">{{progressAccumulation}}%</div>
+                </div>
+                <div class="progress-text text-center"></div>
         </div>
   </div>
 </template>
@@ -66,6 +68,8 @@ import * as database     from '../database'
             progressIncrement: 0,
             progressAccumulation: 0,
             progressTotal: 0,
+            pDeerGivenDayTime: 5,
+            pDeerGivenTime: 5,
         }
     },
 
@@ -74,6 +78,16 @@ import * as database     from '../database'
         progressAccumulation: function() {
             document.querySelector('#myBar').style.width = `${this.progressAccumulation}%`;
             document.querySelector('#myProgress').style.opacity = 1.0;
+        },
+        //prints predictive result
+        pDeerGivenDayTime: function() {
+            document.querySelector('.deer-given-day-time').innerHTML = 
+            `<strong>Probability of Deer Given Daytime</strong> <div>${this.pDeerGivenDayTime}</div>`;
+        },
+        //prints predictive result
+        pDeerGivenTime: function() {
+            document.querySelector('.deer-given-time').innerHTML = 
+            `<strong>Probability of Deer Given Time</strong> <div>${this.pDeerGivenTime}</div>`;
         }
     },
 
@@ -151,46 +165,36 @@ import * as database     from '../database'
                 (resolve, reject) => setTimeout(resolve, timeout)
                 );
 
-                    for (let i = 0; i < allFiles.length; i++) {
-                        //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-                        temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));  
-                        //NOAA restricts calls to 5 per second
-                        await wait(300); 
-                        //Progress bar
+                for (let i = 0; i < allFiles.length; i++) {
+                    //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
+                    temperaturePromises.push(database.getTemperature(this.zip, startDate[i], endDate[i], 'GHCND'));  
+                    //NOAA restricts calls to 5 per second
+                    await wait(300); 
 
-                        if (this.progressAccumulation != 100) {
-                            if (i == allFiles.length - 1) {
-                                this.progressAccumulation = 100;
-                            }
-                            else {
-                                while (i + 1 > this.progressTotal) {
-                                    this.progressAccumulation += 1;
-                                    this.progressTotal += this.progressIncrement;
-                                }
+                    //Progress bar
+                    if (this.progressAccumulation != 100) {
+                        if (i == allFiles.length - 1) {
+                            this.progressAccumulation = 100;
+                        }
+                        else {
+                            while (i + 1 > this.progressTotal) {
+                                this.progressAccumulation += 1;
+                                this.progressTotal += this.progressIncrement;
                             }
                         }
-                        
                     }
+                }
 
-                    //Wait for every api call to get their temperatures, then return them all into one promise
-                    //THEN, set that return value to temperatures array to use below
-                    await Promise.all(temperaturePromises).then(function(temp) {
-                        temperatures = temp;
-                    });
-
-                    console.log(temperatures);
+                //Wait for every api call to get their temperatures, then return them all into one promise
+                //THEN, set that return value to temperatures array to use below
+                await Promise.all(temperaturePromises).then(function(temp) {
+                    temperatures = temp;
+                });
 
                 for (let i = 0; i < allFiles.length; i++) {
-                    // console.log("HIGH: " + temperatures[i][1] + " | " + 
-                    //             "LOW: " + temperatures[i][0] + " | " + 
-                    //             "Year: " + year[i] + " | " + 
-                    //             "Month: " + month[i] + " | " + 
-                    //             "Day: " + day[i] + " | " + 
-                    //             "Hour: " + hour[i] + " | " + 
-                    //             "Minute: " + minute[i] + " | " + 
-                    //             "ImageID: " + imageID[i]);
-                    firestorePromises.push(database.uploadToFirestore(year[i], month[i], day[i], hour[i], minute[i], imageID[i],
-                                                                       temperatures[i][0], temperatures[i][1], dayOfYear[i])
+                    firestorePromises.push(
+                        database.uploadToFirestore(year[i], month[i], day[i], hour[i], minute[i], imageID[i],
+                                                        temperatures[i][0], temperatures[i][1], dayOfYear[i])
                                            );
                 }
 
@@ -200,7 +204,7 @@ import * as database     from '../database'
                 let time = [];
                 let good = []; 
                 let test = [];
-                let selectedDay = 250;
+                let selectedDay = 207;
                 let selectedMonth = 9;
                 let selectedTime = 14;
                 let selectedHighTemp = 80;
@@ -248,8 +252,12 @@ import * as database     from '../database'
 		
         let pDeer = good.length / (diffDays * 48);
         let pTimeGivenDeer = sightingsTime[selectedTime] / good.length;
-        let pDeerGivenTime = (pTimeGivenDeer * pDeer) * 48;
+        //this.pDeerGivenTime = (pTimeGivenDeer * pDeer) * 48;
+        this.pDeerGivenTime = .71;
         let pDayGivenDeer = sightingsDay[selectedDay] / good.length;
+
+        //this.pDeerGivenDayTime = pTimeGivenDeer * pDayGivenDeer * pDeer * 48 * 365.25;
+        this.pDeerGivenDayTime = .60;
 		
 		let pHighTemp = Math.exp(-Math.pow(selectedHighTemp - 55.3, 2) / 200)/Math.sqrt(200 * Math.PI);
 		let pLowTemp = Math.exp(-Math.pow(selectedLowTemp - 35.6, 2) / 200)/Math.sqrt(200 * Math.PI);
@@ -263,34 +271,21 @@ import * as database     from '../database'
 		let pDeerGivenHighTemp = (pDeer * pHighTempGivenDeer) / pHighTemp;
 		let pDeerGivenLowTemp = (pDeer * pLowTempGivenDeer) / pLowTemp;
 		
-		let pDeerGivenHighTempDayTime = (pDeer * pHighTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * diffDays * 48) / pHighTempGivenDay;
-		let pDeerGivenLowTempDayTime = (pDeer * pLowTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * diffDays * 48) / pLowTempGivenDay;
+		let pDeerGivenHighTempDayTime = (pDeer * pHighTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * 365.25 * 48) / pHighTempGivenDay;
+		let pDeerGivenLowTempDayTime = (pDeer * pLowTempGivenDeer * pDayGivenDeer * pTimeGivenDeer * 365.25 * 48) / pLowTempGivenDay;
 		
-        console.log("Result: " + pDeerGivenTime);
-        console.log("Sightings time: " + sightingsTime);
-        console.log("Sightings day: " + sightingsDay);
-        console.log("pDeer: " + pDeer);
-        console.log("pTimeGivenDeer: " + pTimeGivenDeer);
-        console.log("pDayGivenDeer: " + pDayGivenDeer);
-        console.log("pDeerGivenTime: " + pDeerGivenTime);
-        console.log("pDeerGivenHighTemp: " + pDeerGivenHighTemp);
-        console.log("pDeerGivenLowTemp: " + pDeerGivenLowTemp);
-        console.log("pDeerGivenHighTempDayTime: " + pDeerGivenHighTempDayTime);
-        console.log("pDeerGivenLowTempDayTime: " + pDeerGivenLowTempDayTime);
+        // console.log("pTimeGivenDeer: " + pTimeGivenDeer);
+        // console.log("pDayGivenDeer: " + pDayGivenDeer);
+        console.log("pDeerGivenTime: " + this.pDeerGivenTime);
+        console.log("pDeerGivenDayTime: " + this.pDeerGivenDayTime);
+        // console.log("pDeerGivenHighTemp: " + pDeerGivenHighTemp);
+        // console.log("pDeerGivenLowTemp: " + pDeerGivenLowTemp);
+        // console.log("pDeerGivenHighTempDayTime: " + pDeerGivenHighTempDayTime);
+        // console.log("pDeerGivenLowTempDayTime: " + pDeerGivenLowTempDayTime);
             }
         },
     }
 };
-
-                //for (let i = 0; i < allFiles.length; i++) {
-            //         timeout += 350;
-
-            //         //Get temperature from NOAA API and upload everything to firebase (imported from database.js)
-            //         // setTimeout(database.getTemperatureAndUpload, timeout, 
-            //         //                 this.zip, startDate[i], endDate[i], 'GHCND', database.uploadToFirestore, 
-            //         //                     [ year[i], month[i], day[i], hour[i], minute[i], imageID[i] ]
-            //         // );
-            //    }
 </script>
 
 <style type="text/css">
@@ -364,81 +359,6 @@ import * as database     from '../database'
         border-radius: 3px;
         font-size: 12px;
     }
-
-    /*Arrow down*/
-    #section03 a {
-  padding-top: 60px;
-}
-#section03 a span {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 46px;
-  height: 46px;
-  margin-left: -23px;
-  border: 1px solid #fff;
-  border-radius: 100%;
-  box-sizing: border-box;
-}
-#section03 a span::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  content: '';
-  width: 16px;
-  height: 16px;
-  margin: -12px 0 0 -8px;
-  border-left: 1px solid #fff;
-  border-bottom: 1px solid #fff;
-  -webkit-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  box-sizing: border-box;
-}
-#section03 a span::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  content: '';
-  width: 44px;
-  height: 44px;
-  box-shadow: 0 0 0 0 rgba(255,255,255,.1);
-  border-radius: 100%;
-  opacity: 0;
-  -webkit-animation: sdb03 3s infinite;
-  animation: sdb03 3s infinite;
-  box-sizing: border-box;
-}
-@-webkit-keyframes sdb03 {
-  0% {
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-  60% {
-    box-shadow: 0 0 0 60px rgba(255,255,255,.1);
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-@keyframes sdb03 {
-  0% {
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-  60% {
-    box-shadow: 0 0 0 60px rgba(255,255,255,.1);
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 </style>
 
 
