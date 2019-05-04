@@ -14,3 +14,5 @@ npm run dev
 # build for production with minification
 npm run build
 ```
+
+![alt text](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.pptx%20(1).pdf)
