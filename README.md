@@ -15,4 +15,4 @@ npm run dev
 npm run build
 ```
 
-![alt text](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.png?raw=true){:height="700px" width="400px"}
+![alt text](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.png?raw=true)
