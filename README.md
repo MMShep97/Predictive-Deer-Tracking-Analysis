@@ -15,6 +15,6 @@ npm run dev
 npm run build
 ```
 
-<video src="demonstration-gif.webm" width="320" height="200" controls preload></video>
+<img src="demonstration-gif.WEBM></video>
 
 ![alt text](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.png?raw=true)
