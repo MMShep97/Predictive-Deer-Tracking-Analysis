@@ -15,6 +15,6 @@ npm run dev
 npm run build
 ```
 
-![alt text](https://raw.githubusercontent.com/MMShep97/Predictive-Deer-Tracking/master/demonstration-gif.webm)
+![](https://raw.githubusercontent.com/MMShep97/Predictive-Deer-Tracking/master/demonstration-gif.webm)
 
-![alt text](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.png?raw=true)
+![](https://github.com/MMShep97/Predictive-Deer-Tracking/blob/master/IOT_Poster.png?raw=true)
